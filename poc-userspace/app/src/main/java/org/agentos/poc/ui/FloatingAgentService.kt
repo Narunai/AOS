@@ -8,6 +8,7 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.graphics.PixelFormat
+import android.graphics.drawable.GradientDrawable
 import android.os.Build
 import android.os.IBinder
 import android.view.Gravity
@@ -60,10 +61,7 @@ class FloatingAgentService : Service() {
         val layoutParams = WindowManager.LayoutParams(
             WindowManager.LayoutParams.WRAP_CONTENT,
             WindowManager.LayoutParams.WRAP_CONTENT,
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
-            else
-                WindowManager.LayoutParams.TYPE_PHONE,
+            WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
             PixelFormat.TRANSLUCENT
         ).apply {
@@ -72,26 +70,39 @@ class FloatingAgentService : Service() {
             y = 200
         }
 
+        val backgroundDrawable = GradientDrawable().apply {
+            shape = GradientDrawable.RECTANGLE
+            cornerRadius = 48f
+            setColor(Color.parseColor("#E66750A4"))
+            setStroke(2, Color.parseColor("#FFFFFF"))
+        }
+
         val container = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
-            setBackgroundColor(Color.parseColor("#DD6750A4"))
-            setPadding(24, 16, 24, 16)
+            background = backgroundDrawable
+            setPadding(32, 18, 32, 18)
+            elevation = 16f
         }
 
         val text = TextView(this).apply {
             this.text = "⚡ AgentOS"
             setTextColor(Color.WHITE)
             textSize = 14f
+            setPadding(0, 0, 16, 0)
         }
 
         val button = Button(this).apply {
-            this.text = "Inspect"
+            this.text = "Snapshot"
+            setTextColor(Color.parseColor("#6750A4"))
+            setBackgroundColor(Color.WHITE)
+            textSize = 12f
+            setPadding(16, 0, 16, 0)
             setOnClickListener {
                 val service = ContextAccessibilityService.getInstance()
                 if (service != null) {
-                    Toast.makeText(this@FloatingAgentService, "Screen captured into Episodic Memory!", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@FloatingAgentService, "Screen indexed into Episodic Memory!", Toast.LENGTH_SHORT).show()
                 } else {
-                    Toast.makeText(this@FloatingAgentService, "Accessibility not enabled", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@FloatingAgentService, "Accessibility Service is not enabled", Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -99,7 +110,7 @@ class FloatingAgentService : Service() {
         container.addView(text)
         container.addView(button)
 
-        // Make floating overlay draggable
+        // Make floating overlay smoothly draggable
         container.setOnTouchListener(object : View.OnTouchListener {
             private var initialX = 0
             private var initialY = 0
@@ -137,4 +148,3 @@ class FloatingAgentService : Service() {
 
     override fun onBind(intent: Intent?): IBinder? = null
 }
-

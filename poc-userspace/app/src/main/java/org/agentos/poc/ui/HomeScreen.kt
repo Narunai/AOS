@@ -8,8 +8,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Send
+import androidx.compose.material.icons.filled.Key
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -22,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 import org.agentos.poc.AgentApp
+import org.agentos.poc.agent.ai.GeminiClient
 import org.agentos.poc.agent.orchestrator.PromptTemplates
 import org.agentos.poc.collector.ContextAccessibilityService
 import org.agentos.poc.collector.ShizukuBridge
@@ -29,11 +31,15 @@ import org.agentos.poc.collector.ShizukuBridge
 @Composable
 fun HomeScreen() {
     val context = LocalContext.current
+    val prefs = remember { context.getSharedPreferences("agent_os_prefs", Context.MODE_PRIVATE) }
     val repository = remember { AgentApp.instance.memoryRepository }
     val scope = rememberCoroutineScope()
 
     var isAccessibilityActive by remember { mutableStateOf(ContextAccessibilityService.getInstance() != null) }
     var isShizukuActive by remember { mutableStateOf(ShizukuBridge.hasPermission()) }
+
+    var apiKey by remember { mutableStateOf(prefs.getString("gemini_api_key", "") ?: "") }
+    var showApiKeyInput by remember { mutableStateOf(apiKey.isBlank()) }
 
     var userQuestion by remember { mutableStateOf("") }
     var aiAnswer by remember { mutableStateOf<String?>(null) }
@@ -140,6 +146,51 @@ fun HomeScreen() {
             }
         }
 
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // AI Engine Configuration Card
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh)
+        ) {
+            Column(modifier = Modifier.padding(12.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.Key, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text("Gemini 2.5 Flash Engine", fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+                    }
+                    TextButton(onClick = { showApiKeyInput = !showApiKeyInput }) {
+                        Text(if (showApiKeyInput) "Hide" else if (apiKey.isNotBlank()) "Configured" else "Set Key")
+                    }
+                }
+
+                if (showApiKeyInput) {
+                    Spacer(modifier = Modifier.height(6.dp))
+                    OutlinedTextField(
+                        value = apiKey,
+                        onValueChange = {
+                            apiKey = it.trim()
+                            prefs.edit().putString("gemini_api_key", apiKey).apply()
+                        },
+                        label = { Text("Gemini API Key (BYOK)") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true
+                    )
+                    Text(
+                        text = "Leave empty to use Local Semantic Synthesis Preview without cloud calls.",
+                        fontSize = 11.sp,
+                        color = Color.Gray,
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
+                }
+            }
+        }
+
         Spacer(modifier = Modifier.height(20.dp))
 
         // Cross-App Memory Q&A
@@ -149,7 +200,7 @@ fun HomeScreen() {
             fontWeight = FontWeight.Bold
         )
         Text(
-            text = "Questions that require recalling context across LINE, Notes, Browser, etc.",
+            text = "Answers questions requiring context across LINE, Notes, Browser, and files.",
             style = MaterialTheme.typography.bodySmall,
             color = Color.Gray
         )
@@ -169,13 +220,26 @@ fun HomeScreen() {
                             scope.launch {
                                 val relevant = repository.searchMemory(userQuestion, limit = 5)
                                 val prompt = PromptTemplates.buildMemoryRecallPrompt(userQuestion, relevant)
-                                aiAnswer = "Prompt synthesized from ${relevant.size} local memory snapshots:\n\n$prompt"
+
+                                if (apiKey.isNotBlank()) {
+                                    val result = GeminiClient.generateContent(prompt, apiKey)
+                                    result.fold(
+                                        onSuccess = { answerText ->
+                                            aiAnswer = answerText
+                                        },
+                                        onFailure = { err ->
+                                            aiAnswer = "Gemini Error: ${err.message}\n\nFalling back to local synthesized prompt:\n$prompt"
+                                        }
+                                    )
+                                } else {
+                                    aiAnswer = "💡 Local Memory Context (${relevant.size} records matched):\n\n$prompt\n\n(Tip: Enter your Gemini API Key above to get real AI natural language answers!)"
+                                }
                                 isQuerying = false
                             }
                         }
                     }
                 ) {
-                    Icon(Icons.Default.Send, contentDescription = "Ask")
+                    Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "Ask")
                 }
             }
         )
@@ -191,12 +255,12 @@ fun HomeScreen() {
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
             ) {
-                Column(modifier = Modifier.padding(12.dp)) {
+                Column(modifier = Modifier.padding(14.dp)) {
                     Text("Co-pilot Memory Retrieval Result:", fontWeight = FontWeight.Bold)
-                    Spacer(modifier = Modifier.height(4.dp))
+                    Spacer(modifier = Modifier.height(6.dp))
                     Text(
                         text = answer,
-                        fontSize = 12.sp,
+                        fontSize = 13.sp,
                         color = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                 }
@@ -236,4 +300,3 @@ fun ServiceStatusRow(
         }
     }
 }
-

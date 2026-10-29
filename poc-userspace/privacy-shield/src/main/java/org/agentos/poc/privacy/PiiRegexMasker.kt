@@ -18,9 +18,9 @@ object PiiRegexMasker {
         "\\b[1-9]\\d{12}\\b|\\b[1-9]-\\d{4}-\\d{5}-\\d{2}-\\d\\b"
     )
 
-    // OTP patterns (e.g., "OTP: 123456", "รหัส OTP 849201", "verification code is 492014")
+    // OTP patterns (e.g., "OTP: 123456", "รหัส OTP ของคุณคือ 849201", "verification code is 492014")
     private val OTP_REGEX = Pattern.compile(
-        "(?i)(?:otp|code|รหัสยืนยัน|รหัส otp|verification code)[^0-9]{1,10}([0-9]{4,8})\\b"
+        "(?i)(?:otp|code|รหัสยืนยัน|รหัส\\s*otp|verification\\s*code)[^0-9]{1,25}([0-9]{4,8})"
     )
 
     // Phone number pattern (Thai format: 08x-xxx-xxxx, 09x-xxx-xxxx, 06x-xxx-xxxx)
