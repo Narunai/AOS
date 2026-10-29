@@ -1,0 +1,15 @@
+#
+# Copyright (C) 2026 The Android Open Source Project
+# Copyright (C) 2026 Agentic OS Project
+#
+
+service agentd /system_ext/bin/agentd
+    class main
+    user system
+    group system readproc
+    capabilities DAC_READ_SEARCH
+    seclabel u:r:agentd:s0
+    disabled
+
+on property:sys.boot_completed=1
+    start agentd

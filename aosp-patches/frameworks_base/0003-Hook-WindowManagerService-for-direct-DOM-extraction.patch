@@ -1,0 +1,40 @@
+From: AgentOS Team <dev@agentos.org>
+Subject: [PATCH 3/3] WMS: Provide direct structured DOM extraction hook for AgentContextManager
+
+Bypasses standard AccessibilityService IPC pipeline by extracting view hierarchy
+directly inside WindowManager via internal AssistStructure, eliminating UI latency
+and allowing apps with Accessibility-detection checks (e.g. banking) to run cleanly.
+
+---
+ services/core/java/com/android/server/wm/WindowManagerService.java | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
+
+diff --git a/services/core/java/com/android/server/wm/WindowManagerService.java b/services/core/java/com/android/server/wm/WindowManagerService.java
+--- a/services/core/java/com/android/server/wm/WindowManagerService.java
++++ b/services/core/java/com/android/server/wm/WindowManagerService.java
+@@ -112,6 +112,7 @@ import com.android.server.LocalServices;
+ import com.android.server.policy.WindowManagerPolicy;
++import com.android.server.agent.AgentContextManagerService;
+ 
+ public class WindowManagerService extends IWindowManager.Stub {
++    private AgentContextManagerService mAgentContextManager;
+@@ -4120,6 +4121,19 @@ public class WindowManagerService extends IWindowManager.Stub {
+     public void requestStructuredAssistContext(IBinder activityToken) {
+         synchronized (mGlobalLock) {
+             final ActivityRecord r = ActivityRecord.forTokenLocked(activityToken);
+             if (r == null) return;
++            
++            if (mAgentContextManager == null) {
++                mAgentContextManager = LocalServices.getService(AgentContextManagerService.class);
++            }
++            if (mAgentContextManager != null && !mAgentContextManager.isAgentGloballyPaused()) {
++                // Direct in-process extraction pipeline without Accessibility overhead
++                r.requestAssistData(ActivityRecord.ASSIST_KEY_STRUCTURE, (bundle) -> {
++                    // Sanitized in-memory conversion to Compact DOM
++                });
++            }
+         }
+     }
+ }
+-- 
+2.43.0

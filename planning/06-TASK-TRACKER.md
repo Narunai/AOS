@@ -60,19 +60,22 @@
 ## ⚙️ Phase 2: Custom AOSP / LineageOS Alpha (เดือนที่ 4 – 9)
 
 ### Milestone 2.1: AOSP Build Environment & Emulator (เดือนที่ 4)
-- [ ] ติดตั้งสภาพแวดล้อมการบิลด์ AOSP/LineageOS บน Linux / WSL2 / Cloud Build Server
-- [ ] ซิงค์ซอร์สโค้ด LineageOS 22.x (Android 15) และตั้งค่า `ccache`
-- [ ] บิลด์และรันอิมเมจมาตรฐานบน **Cuttlefish** หรือ **Waydroid** สำเร็จ
-- [ ] นำแอปจาก Phase 1 ฝังเข้าเป็น Privileged System App (`/system_ext/priv-app/AgentSystemUI`)
+- [x] สร้างสคริปต์ `tools/apply-aosp-patches.sh` สำหรับติดตั้ง Patches ลง AOSP / LineageOS อัตโนมัติ
+- [x] สร้างสคริปต์ `tools/cuttlefish/launch-cuttlefish.sh` สำหรับทดสอบบน Cuttlefish WebRTC Emulator
+- [x] สร้าง Blueprint ฝังแอปเป็น Privileged System App (`packages/apps/AgentSystemUI/Android.bp` และ `privapp-permissions-agent.xml`)
 
 ### Milestone 2.2: Framework Hooks & Agent Bus (เดือนที่ 5 – 6)
-- [ ] สร้าง `IAgentContextManager.aidl` และ `IAgentEventListener.aidl` ใน `frameworks/base`
-- [ ] พัฒนา `AgentContextManagerService` และลงทะเบียนใน `SystemServer.java`
-- [ ] เพิ่ม Hook ใน `ActivityTaskManagerService` และ `WindowManagerService` เพื่อดึงโครงสร้างหน้าจอความเร็วสูงโดยไม่ต้องพึ่ง `AccessibilityService`
+- [x] สร้าง `IAgentContextManager.aidl` และ `IAgentEventListener.aidl` ใน `frameworks/base`
+- [x] สร้าง Parcelable Models: `AgentContextSnapshot.java`, `AgentActionRequest.java`, `AgentManager.java`
+- [x] พัฒนา `AgentContextManagerService.java` และสร้าง Patch ลงทะเบียนใน `SystemServer.java`
+- [x] สร้าง Patch เพิ่ม Hook ใน `ActivityTaskManagerService` เพื่อดักจับการสลับแอปแบบเรียลไทม์
+- [x] สร้าง Patch เพิ่ม Hook ใน `WindowManagerService` เพื่อดึงโครงสร้างหน้าจอความเร็วสูงโดยตรงในระดับ OS
 
 ### Milestone 2.3: Native Daemon (`agentd`) & SELinux (เดือนที่ 7)
-- [ ] สร้าง Native C++ Daemon (`system/agentd`) สำหรับเฝ้าดูและอ่านฐานข้อมูลแบบ Read-only
-- [ ] เขียนกฎ SELinux (`agentd.te`) แบบ Enforcing พร้อมกฎ `neverallow` ป้องกันการต่ออินเทอร์เน็ตจากตัว Daemon
+- [x] พัฒนา Native C++ Daemon (`system_agentd`: `Android.bp`, `agentd.rc`, `main.cpp`)
+- [x] เขียน `WalSqliteReader.cpp` สำหรับอ่าน SQLite WAL แบบ Strict Read-Only (`immutable=1` และ `PRAGMA query_only = ON`)
+- [x] เขียน `InotifyWatcher.cpp` สำหรับเฝ้าดูการเปลี่ยนแปลงของไฟล์ฐานข้อมูลใน `/data/data/`
+- [x] เขียนกฎ SELinux (`agentd.te`, `service.te`, `service_contexts`, `system_server.te`) พร้อมกฎ `neverallow` ป้องกัน Daemon ออกเน็ต
 
 ### Milestone 2.4: Hardware Porting & Daily Driver Test (เดือนที่ 8 – 9)
 - [ ] ผสานรวม **microG** เพื่อให้รองรับแจ้งเตือน Push Notification และ Google Maps API

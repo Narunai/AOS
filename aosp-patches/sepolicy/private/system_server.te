@@ -1,0 +1,7 @@
+#
+# Copyright (C) 2026 Agentic OS Project
+#
+
+# Allow system_server to find and invoke agentd service
+allow system_server agentd_service:service_manager find;
+allow system_server agent_context_service:service_manager add;

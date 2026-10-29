@@ -1,0 +1,33 @@
+//
+// Copyright (C) 2026 Agentic OS Project
+//
+
+package {
+    default_applicable_licenses: ["Android-Apache-2.0"],
+}
+
+android_app {
+    name: "AgentSystemUI",
+    platform_apis: true,
+    privileged: true,
+    system_ext_specific: true,
+    certificate: "platform",
+    static_libs: [
+        "androidx.core_core",
+        "androidx.compose.ui_ui",
+        "androidx.compose.material3_material3",
+        "kotlinx_coroutines_android",
+        "kotlinx_serialization_json",
+    ],
+    required: ["privapp-permissions-agent.xml"],
+    optimize: {
+        enabled: false,
+    },
+}
+
+prebuilt_etc {
+    name: "privapp-permissions-agent.xml",
+    sub_dir: "permissions",
+    src: "privapp-permissions-agent.xml",
+    system_ext_specific: true,
+}

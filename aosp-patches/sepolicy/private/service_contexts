@@ -1,0 +1,6 @@
+#
+# Copyright (C) 2026 Agentic OS Project
+#
+
+agent_context                             u:object_r:agent_context_service:s0
+agentd                                    u:object_r:agentd_service:s0

@@ -1,0 +1,32 @@
+//
+// Copyright (C) 2026 The Android Open Source Project
+// Copyright (C) 2026 Agentic OS Project
+//
+
+package {
+    default_applicable_licenses: ["Android-Apache-2.0"],
+}
+
+cc_binary {
+    name: "agentd",
+    srcs: [
+        "main.cpp",
+        "WalSqliteReader.cpp",
+        "InotifyWatcher.cpp",
+    ],
+    init_rc: ["agentd.rc"],
+    shared_libs: [
+        "libbase",
+        "liblog",
+        "libutils",
+        "libbinder_ndk",
+        "libsqlite",
+    ],
+    cflags: [
+        "-Wall",
+        "-Werror",
+        "-Wextra",
+        "-O2",
+    ],
+    system_ext_specific: true,
+}

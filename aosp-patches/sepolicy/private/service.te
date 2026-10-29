@@ -1,0 +1,6 @@
+#
+# Copyright (C) 2026 Agentic OS Project
+#
+
+type agent_context_service, app_api_service, system_server_service, service_manager_type;
+type agentd_service, service_manager_type;

@@ -1,0 +1,36 @@
+#
+# Copyright (C) 2026 Agentic OS Project
+# SELinux Policy for agentd (Native Context Daemon)
+#
+
+type agentd, domain, coredomain;
+type agentd_exec, system_file_type, exec_type, file_type;
+
+init_daemon_domain(agentd)
+
+# Binder IPC permissions
+binder_use(agentd)
+binder_service(agentd)
+add_service(agentd, agentd_service)
+allow agentd system_server:binder { call transfer };
+allow system_server agentd:binder { call transfer };
+
+# Strict Read-Only access to app databases in /data/data
+allow agentd app_data_file:dir r_dir_perms;
+allow agentd app_data_file:file r_file_perms;
+
+# Log and property permissions
+allow agentd system_file:file rx_file_perms;
+
+# ==============================================================================
+# STRICT NEVERALLOW RULES (Security Verification Gates)
+# ==============================================================================
+
+# 1. Daemon can NEVER write, modify, or delete any app data file
+neverallow agentd app_data_file:file { write append create unlink rename setattr };
+neverallow agentd app_data_file:dir { write add_name remove_name create rmdir };
+
+# 2. Daemon can NEVER open network sockets or communicate over internet
+neverallow agentd node_type:{ tcp_socket udp_socket rawip_socket } *;
+neverallow agentd netif_type:{ tcp_socket udp_socket rawip_socket } *;
+neverallow agentd port_type:{ tcp_socket udp_socket } name_connect;

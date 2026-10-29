@@ -1,0 +1,36 @@
+From: AgentOS Team <dev@agentos.org>
+Subject: [PATCH 2/3] ATMS: Hook activity resume and focus changes into AgentContextManager
+
+Notifies AgentContextManagerService whenever an activity resumes or gains focus,
+providing real-time application switching context to the AI Co-pilot without polling.
+
+---
+ services/core/java/com/android/server/wm/ActivityTaskManagerService.java | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/services/core/java/com/android/server/wm/ActivityTaskManagerService.java b/services/core/java/com/android/server/wm/ActivityTaskManagerService.java
+--- a/services/core/java/com/android/server/wm/ActivityTaskManagerService.java
++++ b/services/core/java/com/android/server/wm/ActivityTaskManagerService.java
+@@ -82,6 +82,7 @@ import com.android.server.LocalServices;
+ import com.android.server.SystemService;
+ import com.android.server.am.ActivityManagerService;
++import com.android.server.agent.AgentContextManagerService;
+ 
+ public class ActivityTaskManagerService extends IActivityTaskManager.Stub {
++    private AgentContextManagerService mAgentService;
+@@ -4920,6 +4921,13 @@ public class ActivityTaskManagerService extends IActivityTaskManager.Stub {
+         mRootWindowContainer.resumeFocusedTasksTopActivities();
++        
++        // Notify AgentOS Context Manager of foreground focus change
++        if (r != null && r.packageName != null) {
++            if (mAgentService == null) {
++                mAgentService = LocalServices.getService(AgentContextManagerService.class);
++            }
++            if (mAgentService != null) {
++                mAgentService.notifyActivityFocused(r.packageName, r.shortComponentName);
++            }
++        }
+     }
+ }
+-- 
+2.43.0
