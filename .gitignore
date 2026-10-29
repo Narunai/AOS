@@ -1,0 +1,41 @@
+# Gradle & Android Build Artifacts
+.gradle/
+build/
+*/build/
+*.apk
+*.aab
+*.ap_
+*.dex
+*.class
+
+# Android Studio & IDEs
+.idea/
+*.iml
+.navigation/
+captures/
+.externalNativeBuild/
+.cxx/
+local.properties
+
+# OS & Temp Files
+.DS_Store
+Thumbs.db
+*.swp
+*.bak
+*~
+
+# Secrets & Keys
+*.jks
+*.keystore
+secrets.properties
+*.key
+google-services.json
+
+# AOSP Build outputs
+out/
+.repo/
+
+
+# Kotlin daemon & compiler sessions
+.kotlin/
+*.log

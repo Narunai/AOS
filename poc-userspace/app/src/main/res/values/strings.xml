@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">AgentOS PoC</string>
+    <string name="service_accessibility_desc">Enables AgentOS to observe semantic screen structure and execute actions on your behalf.</string>
+</resources>
+

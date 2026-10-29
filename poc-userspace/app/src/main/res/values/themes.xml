@@ -1,0 +1,7 @@
+<resources>
+    <style name="Theme.AgentOS" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:statusBarColor">#FEF7FF</item>
+        <item name="android:windowLightStatusBar">true</item>
+    </style>
+</resources>
+
